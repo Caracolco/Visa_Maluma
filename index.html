@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#030a24">
+<title>PRISA Memory Challenge</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="logo"><span class="logo-mark">P</span><span>PRISA <b>MEDIA</b></span></div>
+  <span class="demo-pill">DEMO</span>
+</header>
+
+<main id="app">
+
+  <!-- REGISTRO -->
+  <section class="screen active" id="s-register">
+    <div class="hero">
+      <p class="eyebrow">Estudio de memoria publicitaria</p>
+      <h1 class="title"><span>PRISA</span><span>MEMORY</span><span>CHALLENGE</span></h1>
+      <p class="subtitle">¿Qué tanto recuerdas de lo que ves?</p>
+      <p class="lead">Observa cinco anuncios durante cuatro segundos cada uno. Después demuestra qué tanto recuerdas.</p>
+    </div>
+
+    <div class="prize glass">
+      <div class="ticket"><span>🎟</span><span>🎟</span></div>
+      <div>
+        <strong>Dos boletas para Maluma</strong>
+        <small>Posible premio en una futura versión del reto</small>
+      </div>
+    </div>
+    <p class="demo-warn">VERSIÓN DEMO - SIN PREMIOS REALES</p>
+
+    <form id="reg" class="glass form" autocomplete="off" novalidate>
+      <label><span>Nombre o alias</span><input name="alias" maxlength="24" required placeholder="Ej. LaMemoria"></label>
+      <label><span>Correo de prueba</span><input name="email" type="email" required placeholder="demo@correo.com"></label>
+      <label><span>Ciudad</span><input name="city" maxlength="30" required placeholder="Bogotá"></label>
+      <p class="form-err" id="reg-err"></p>
+      <button class="btn primary" type="submit"><span>COMENZAR RETO</span></button>
+      <p class="fine">Tus datos solo viven en esta sesión del navegador. No se guardan ni se envían.</p>
+    </form>
+
+    <div class="rules">
+      <div><b>5</b><span>anuncios</span></div>
+      <div><b>4s</b><span>cada uno</span></div>
+      <div><b>12</b><span>retos</span></div>
+      <div><b>3.300</b><span>puntos</span></div>
+    </div>
+  </section>
+
+  <!-- CUENTA REGRESIVA -->
+  <section class="screen" id="s-ready">
+    <p class="eyebrow" id="ready-name"></p>
+    <h2 class="ready-title">Prepárate para observar</h2>
+    <div class="big-count" id="big-count">3</div>
+    <p class="lead">Sin pausas. Sin retroceso. Concéntrate.</p>
+  </section>
+
+  <!-- EXPOSICIÓN -->
+  <section class="screen" id="s-watch">
+    <div class="story-bars" id="bars"></div>
+    <div class="watch-head">
+      <span id="ad-index">Anuncio 1/5</span>
+      <span class="ring-wrap"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/><circle id="ring" cx="20" cy="20" r="17"/></svg><b id="ad-sec">4</b></span>
+    </div>
+    <div class="stage" id="stage"></div>
+  </section>
+
+  <!-- TRANSICIÓN -->
+  <section class="screen" id="s-phase">
+    <div class="phase-icon" id="phase-icon">🧠</div>
+    <p class="eyebrow" id="phase-eyebrow">Fase 1</p>
+    <h2 class="phase-title" id="phase-title">Memoria espontánea</h2>
+    <p class="lead" id="phase-text"></p>
+  </section>
+
+  <!-- PREGUNTA -->
+  <section class="screen" id="s-q">
+    <div class="q-top">
+      <span class="q-num" id="q-num">Reto 1/12</span>
+      <span class="q-diff" id="q-diff">ESPONTÁNEA</span>
+      <span class="q-pts" id="q-pts">+300</span>
+    </div>
+    <div class="progress"><i id="q-progress"></i></div>
+    <div class="timer"><i id="timer-bar"></i><b id="timer-num">25</b></div>
+    <h2 class="q-text" id="q-text"></h2>
+    <p class="q-hint" id="q-hint"></p>
+    <div id="q-body"></div>
+    <div class="locked" id="locked"><span>✓</span> Respuesta registrada</div>
+  </section>
+
+  <!-- RESULTADOS -->
+  <section class="screen" id="s-result">
+    <p class="eyebrow">Reto completado</p>
+    <h2 class="res-name" id="res-name"></h2>
+    <div class="score-orb">
+      <svg viewBox="0 0 200 200"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#3aa0ff"/></linearGradient></defs><circle cx="100" cy="100" r="88" class="orb-bg"/><circle cx="100" cy="100" r="88" class="orb-fg" id="orb"/></svg>
+      <div><b id="res-score">0</b><small>de 3.300 pts</small></div>
+    </div>
+    <div class="badge-rank" id="res-tier"></div>
+    <div class="stats">
+      <div class="glass"><b id="st-ok">0</b><span>Aciertos</span></div>
+      <div class="glass"><b id="st-ko">0</b><span>Errores</span></div>
+      <div class="glass"><b id="st-time">0</b><span>Tiempo</span></div>
+    </div>
+    <div class="glass diff-grid" id="diff-grid"></div>
+
+    <div class="glass ranking">
+      <div class="rank-head"><h3>Ranking</h3><span class="sim">RANKING SIMULADO - DEMO</span></div>
+      <ol id="rank"></ol>
+    </div>
+
+    <button class="btn primary" id="again"><span>VOLVER A JUGAR</span></button>
+    <button class="btn ghost small" id="diag-btn">VER DATOS DE RECORDACIÓN</button>
+    <p class="demo-warn">VERSIÓN DEMO - SIN PREMIOS REALES</p>
+  </section>
+</main>
+
+<!-- DIAGNÓSTICO -->
+<div class="modal" id="diag" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-head"><h3>Datos de recordación · esta partida</h3><button class="x" id="diag-close" aria-label="Cerrar">✕</button></div>
+    <div id="diag-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
