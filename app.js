@@ -169,13 +169,15 @@ const ALIAS = {
 };
 const PTS = {E:100,M:200,H:300,X:500};
 const DIFF = {E:'FÁCIL',M:'MEDIA',H:'DIFÍCIL',X:'EXPERTA'};
-const PLAN = ['E','E','M','M','M','H','H','H','X','X'];
+const PLAN = ['E','M','M','H','H','X']; // 6 retos de precisión: 100+400+600+500 = 1.600
+const EXPO = 8000; // ms por anuncio
+const MAXSCORE = 300 + 300 + PLAN.reduce((s,d) => s + ({E:100,M:200,H:300,X:500})[d], 0); // 2.200
 const RANK = [
-  {n:'NeonMemo',c:'Medellín',s:2900,x:2,h:3,t:61.4},{n:'Valen_23',c:'Bogotá',s:2700,x:2,h:2,t:70.2},
-  {n:'ElCaleño',c:'Cali',s:2500,x:1,h:3,t:58.9},{n:'Luchito',c:'Barranquilla',s:2500,x:1,h:3,t:66.0},
-  {n:'Mafe.Rec',c:'Bucaramanga',s:2200,x:1,h:2,t:75.3},{n:'JuanPa',c:'Pereira',s:2000,x:1,h:1,t:80.1},
-  {n:'Sofi',c:'Cartagena',s:1800,x:0,h:2,t:71.7},{n:'DaniGamer',c:'Manizales',s:1500,x:0,h:1,t:90.5},
-  {n:'Caro',c:'Santa Marta',s:1200,x:0,h:1,t:84.2},{n:'Andrés M.',c:'Cúcuta',s:900,x:0,h:0,t:95.0}
+  {n:'NeonMemo',c:'Medellín',s:2100,x:1,h:2,t:48.4},{n:'Valen_23',c:'Bogotá',s:1900,x:1,h:2,t:55.2},
+  {n:'ElCaleño',c:'Cali',s:1700,x:1,h:1,t:44.9},{n:'Luchito',c:'Barranquilla',s:1700,x:1,h:1,t:51.0},
+  {n:'Mafe.Rec',c:'Bucaramanga',s:1500,x:0,h:2,t:58.3},{n:'JuanPa',c:'Pereira',s:1300,x:1,h:0,t:62.1},
+  {n:'Sofi',c:'Cartagena',s:1100,x:0,h:1,t:57.7},{n:'DaniGamer',c:'Manizales',s:900,x:0,h:1,t:70.5},
+  {n:'Caro',c:'Santa Marta',s:700,x:0,h:0,t:66.2},{n:'Andrés M.',c:'Cúcuta',s:500,x:0,h:0,t:75.0}
 ];
 
 /* ============ 2. UTILIDADES ============ */
@@ -200,9 +202,9 @@ function matchBrand(entry){
 /* ============ 3. FONDO ESTELAR (canvas) + partículas ============ */
 const cv = $('#stars'), cx = cv.getContext('2d');
 let W, H, stars = [], speed = .6, target = .6, parts = [];
-function resize(){ const d = Math.min(devicePixelRatio||1,2); W = cv.width = innerWidth*d; H = cv.height = innerHeight*d; }
+function resize(){ const d = Math.min(devicePixelRatio||1,1.25); W = cv.width = innerWidth*d; H = cv.height = innerHeight*d; }
 addEventListener('resize', resize); resize();
-for (let i=0;i<260;i++) stars.push({x:(Math.random()-.5)*2,y:(Math.random()-.5)*2,z:Math.random()});
+for (let i=0;i<120;i++) stars.push({x:(Math.random()-.5)*2,y:(Math.random()-.5)*2,z:Math.random()});
 function warp(ms=900){ target = 26; setTimeout(()=>target=.6, ms); }
 function burst(x,y,n=40,cols=['#ffd23f','#3aa0ff','#5ee7ff','#fff']){
   const d = W/innerWidth;
@@ -252,15 +254,15 @@ function pickAds(){
   return shuffle([fixed, ...others]); // Maluma en posición aleatoria
 }
 function pickQuestions(ads){
+  // 6 retos: uno por anuncio + uno extra en un anuncio al azar (dificultad distinta)
   for (let t=0;t<500;t++){
-    const s = shuffle(PLAN), out = []; let ok = true;
-    ads.forEach((ad,i) => {
-      const need = [s[2*i], s[2*i+1]];
-      const used = new Set();
-      need.forEach(d => {
-        const q = shuffle(ad.preguntas.filter(p => p.d===d && !used.has(p))).find(Boolean);
-        if (!q) { ok = false; return; } used.add(q); out.push({...q, ad});
-      });
+    const s = shuffle(PLAN), out = [], used = new Set(); let ok = true;
+    const pairs = ads.map((ad,i) => [ad, s[i]]);
+    const extra = ads[Math.random()*5|0]; if (pairs.find(p => p[0]===extra)[1]===s[5]) continue;
+    pairs.push([extra, s[5]]);
+    pairs.forEach(([ad,d]) => {
+      const q = shuffle(ad.preguntas.filter(p => p.d===d && !used.has(p)))[0];
+      if (!q) { ok = false; return; } used.add(q); out.push({...q, ad});
     });
     if (ok) { const order = 'EMHX'; return shuffle(out).sort((a,b) => order.indexOf(a.d)-order.indexOf(b.d)); }
   }
@@ -324,7 +326,7 @@ function watch(){
     const ring = $('#ring'); ring.classList.remove('run'); void ring.getBoundingClientRect(); ring.classList.add('run');
     $('#ad-index').textContent = `ANUNCIO ${i+1}/5`;
     stage.appendChild(adEl(G.ads[i]));
-    const end = t0 + (i+1)*4000; // sin deriva acumulada
+    const end = t0 + (i+1)*EXPO; // sin deriva acumulada
     clearInterval(secT);
     const tick = () => $('#ad-sec').textContent = Math.max(1, Math.ceil((end-performance.now())/1000));
     tick(); secT = setInterval(tick, 100);
@@ -345,7 +347,7 @@ function timer(sec, onEnd){
   f();
   return () => { done = true; cancelAnimationFrame(raf); return Math.min(sec, (performance.now()-t0)/1000); };
 }
-const TOTAL_Q = 12;
+const TOTAL_Q = 2 + PLAN.length;
 function header(n, d, pts){
   $('#q-num').textContent = `RETO ${n}/${TOTAL_Q}`;
   const qd = $('#q-diff'); qd.textContent = DIFF[d] || 'ESPONTÁNEA'; qd.dataset.d = d;
@@ -426,7 +428,7 @@ function mcQuestion(q, n){
   });
 }
 async function phase2(){
-  await phaseCard('🎯','Fase 2 · Memoria de precisión','10 retos de detalle','Fácil → Media → Difícil → Experta. 10 segundos por reto.');
+  await phaseCard('🎯','Fase 2 · Memoria de precisión',PLAN.length + ' retos de detalle','Fácil → Media → Difícil → Experta. 10 segundos por reto.');
   for (let i=0;i<G.qs.length;i++){
     const q = G.qs[i], r = await mcQuestion(q, i+3), ok = r.choice === q.a;
     G.answers.push({n:i+3, tipo:'Precisión', d:q.d, q:q.q, ad:q.ad.nombre, user:r.choice ?? 'Tiempo agotado', correct:q.a, ok, pts: ok?PTS[q.d]:0, max:PTS[q.d], time:r.time});
@@ -446,13 +448,13 @@ function results(){
   show('s-result'); warp(1400);
   $('#res-name').textContent = player.alias;
   $('#st-ok').textContent = ok; $('#st-ko').textContent = A.length-ok; $('#st-time').textContent = G.time.toFixed(1)+'s';
-  const tier = G.score>=2800?'LEYENDA DE LA MEMORIA':G.score>=2000?'MEMORIA DE ÉLITE':G.score>=1200?'BUENA MEMORIA':'EN ENTRENAMIENTO';
+  const tier = G.score>=1900?'LEYENDA DE LA MEMORIA':G.score>=1400?'MEMORIA DE ÉLITE':G.score>=800?'BUENA MEMORIA':'EN ENTRENAMIENTO';
   $('#res-tier').textContent = '★ ' + tier;
   // contador animado
   const el = $('#res-score'), t0 = performance.now(), D = 2200;
   (function c(){ const p = Math.min(1,(performance.now()-t0)/D), e = 1-Math.pow(1-p,4); el.textContent = fmt(Math.round(G.score*e)); if (p<1) requestAnimationFrame(c); })();
-  setTimeout(() => $('#orb').style.strokeDashoffset = 553*(1-G.score/3300), 80);
-  setTimeout(() => { for (let k=0;k<4;k++) setTimeout(() => burst(innerWidth*(.2+.6*Math.random()), innerHeight*.3, 60), k*250); }, 900);
+  setTimeout(() => $('#orb').style.strokeDashoffset = 553*(1-G.score/MAXSCORE), 80);
+  setTimeout(() => { for (let k=0;k<4;k++) setTimeout(() => burst(innerWidth*(.2+.6*Math.random()), innerHeight*.3, 35), k*300); }, 900);
   const rows = [['Espontánea','S','#5ee7ff'],['Fácil','E','#3aa0ff'],['Media','M','#7dff9a'],['Difícil','H','#ff9f43'],['Experta','X','#ff4fd8']];
   $('#diff-grid').innerHTML = rows.map(([l,k,c]) => `<div class="diff-row"><span>${l}</span><div class="bar"><i style="background:${c};box-shadow:0 0 12px ${c}" data-w="${by[k][1]?by[k][0]/by[k][1]*100:0}"></i></div><b>${by[k][0]}/${by[k][1]}</b></div>`).join('');
   setTimeout(() => document.querySelectorAll('.diff-row i').forEach(i => i.style.width = i.dataset.w+'%'), 300);
@@ -472,11 +474,11 @@ $('#diag-btn').addEventListener('click', () => {
   $('#diag-body').innerHTML = `
     <div class="kpis">
       <div><small>Posición de Maluma</small><b>${G.malumaPos} de 5</b></div>
-      <div><small>Puntuación final</small><b>${fmt(G.score)} / 3.300</b></div>
+      <div><small>Puntuación final</small><b>${fmt(G.score)} / ${fmt(MAXSCORE)}</b></div>
       <div><small>Mencionó Visa espontáneamente</small>${yn(s.visa)}</div>
       <div><small>Recordó Visa como presentador</small>${yn(G.presenter.ok)}</div>
     </div>
-    <p class="dsec">Anuncios expuestos (4 s c/u)</p>
+    <p class="dsec">Anuncios expuestos (8 s c/u)</p>
     <ul class="dlist">${G.ads.map((a,i) => `<li class="${a.obligatorio?'hl':''}">${i+1}. ${esc(a.nombre)}<em>Marcas: ${a.marcas.concat(a.marcasSecundarias).join(', ')} · ${a.tipo}</em></li>`).join('')}</ul>
     <p class="dsec">Memoria espontánea</p>
     <ul class="dlist">

@@ -21,12 +21,12 @@ Si falta, se muestra un respaldo CSS marcado como tal. Si el afiche incluye patr
 
 ## Dinámica
 1. Registro (alias, correo de prueba, ciudad) solo en memoria de sesión.
-2. 5 anuncios × 4 s: Maluma siempre presente en posición aleatoria + 4 al azar de 14 simulaciones.
+2. 5 anuncios × 8 s: Maluma siempre presente en posición aleatoria + 4 al azar de 14 simulaciones.
 3. Memoria espontánea: marcas recordadas (25 s, 100 c/u, máx. 300) y presentador del concierto (20 s, 300).
-4. Memoria de precisión: 10 preguntas de los anuncios mostrados (2 fáciles, 3 medias, 3 difíciles, 2 expertas; 10 s).
+4. Memoria de precisión: 6 preguntas de los anuncios mostrados (1 fácil, 2 medias, 2 difíciles, 1 experta; 10 s).
 5. Resultados, ranking simulado y botón “VER DATOS DE RECORDACIÓN”.
 
-Máximo: 300 + 300 + 2.700 = **3.300 puntos**.
+Total: 8 retos. Máximo: 300 + 300 + 1.600 = **2.200 puntos**.
 
 ## Ampliar
 El banco `ADS` en `app.js` contiene cada anuncio (`id, nombre, marcas, marcasSecundarias, tipo, colores,
