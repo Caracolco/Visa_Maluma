@@ -7,15 +7,20 @@
    Cada pregunta: q (texto), a (correcta), o (3 distractores). Ampliable libremente. */
 const SIM = 'Simulación publicitaria · Demo';
 const ADS = [
- { id:1, nombre:'Maluma World Tour 2027', marcas:['Visa'], marcasSecundarias:[], // añadir aquí los patrocinadores del afiche original
-   tipo:'concierto', colores:['según afiche original'], obligatorio:true,
-   detallesVisibles:['Maluma','World Tour 2027','Visa presenta','El Corazón de Bogotá - Arena'],
+ { id:1, nombre:'Maluma World Tour 2027 · Loco x Volver', marcas:['Visa'], marcasSecundarias:['Bancolombia','Nequi','Tuboleta','Fenix'],
+   tipo:'concierto', colores:['rojo','crema'], obligatorio:true,
+   detallesVisibles:['Visa presenta','Loco x Volver','Maluma','World Tour 2027','Bogotá','Viernes 5, Febrero','El Corazón de Bogotá - Arena','Preventa exclusiva Bancolombia · Nequi','Entradas Tuboleta','Fenix Entertainment'],
    arte:{t:'img', src:'assets/maluma-visa.jpg'},
    preguntas:[
     {d:'E', q:'¿Qué artista aparecía en uno de los anuncios?', a:'Maluma', o:['J Balvin','Karol G','Feid']},
-    {d:'M', q:'¿Qué marca presentaba la gira del artista en el afiche?', a:'Visa', o:['Mastercard','American Express','Bancolombia']},
-    {d:'H', q:'¿Qué año figuraba en el nombre de la gira de Maluma?', a:'2027', o:['2025','2026','2028']},
-    {d:'X', q:'¿Qué escenario figuraba en la publicidad de Maluma?', a:'El Corazón de Bogotá - Arena', o:['Estadio El Campín','Movistar Arena','Coliseo El Pueblo']}
+    {d:'E', q:'¿En qué ciudad era el concierto de Maluma?', a:'Bogotá', o:['Medellín','Cali','Barranquilla']},
+    {d:'M', q:'¿Qué marca presentaba la gira del artista en el afiche?', a:'Visa', o:['Mastercard','American Express','Davivienda']},
+    {d:'M', q:'¿Qué color de fondo tenía el afiche de Maluma?', a:'Rojo', o:['Azul','Negro','Verde']},
+    {d:'H', q:'¿Qué día figuraba en el afiche de Maluma?', a:'Viernes 5 de febrero', o:['Sábado 6 de febrero','Viernes 12 de febrero','Domingo 7 de febrero']},
+    {d:'H', q:'¿Qué nombre aparecía sobre "Maluma" en el afiche?', a:'Loco x Volver', o:['Papi Juancho','Don Juan','Medallo en el mapa']},
+    {d:'X', q:'¿Qué escenario figuraba en la publicidad de Maluma?', a:'El Corazón de Bogotá - Arena', o:['Estadio El Campín','Movistar Arena','Coliseo El Pueblo']},
+    {d:'X', q:'¿Qué banco tenía la preventa exclusiva en el afiche de Maluma?', a:'Bancolombia', o:['Davivienda','Banco de Bogotá','BBVA']},
+    {d:'X', q:'¿Qué marca vendía las entradas del concierto de Maluma?', a:'Tuboleta', o:['Ticketmaster','Eticket','Taquilla Live']}
  ]},
  { id:2, nombre:'Coca-Cola · Sabor bien frío', marcas:['Coca-Cola'], marcasSecundarias:[], tipo:'bebidas', colores:['rojo','blanco'],
    detallesVisibles:['Destapa un sabor bien frío','Edición Verano','Botella de vidrio 350 ml'],
@@ -159,6 +164,7 @@ const ALIAS = {
   'Spotify':['spotify','spotyfi','spoti'], "McDonald's":['mcdonalds','mcdonald','mcdonals','macdonalds','mc','mcd','mcdo','mcdonnalds'],
   'Avianca':['avianca'], 'Adidas':['adidas','addidas'], 'Rappi':['rappi','rapi'], 'Netflix':['netflix','netflis','netflx'],
   'Alpina':['alpina'], 'Claro':['claro'], 'Nike':['nike','naik'], 'Apple':['apple','iphone','aple'], 'Pepsi':['pepsi'],
+  'Bancolombia':['bancolombia','bancolombi'], 'Nequi':['nequi','neki'], 'Tuboleta':['tuboleta'], 'Fenix':['fenix','fenixentertainment'],
   'Mercado Libre':['mercadolibre','mercadolibr','meli','mercadolivre']
 };
 const PTS = {E:100,M:200,H:300,X:500};
@@ -296,7 +302,7 @@ function adEl(ad){
 function posterFallback(){
   return `<div class="ad poster" style="position:absolute;inset:0"><div class="pre">VISA PRESENTA</div>
     <div><div class="art">MALUMA</div><div class="tour">WORLD TOUR 2027</div></div>
-    <div class="venue">El Corazón de Bogotá - Arena</div><div class="warn">Respaldo visual · coloque la imagen original en assets/maluma-visa.jpg</div></div>`;
+    <div class="venue">El Corazón de Bogotá - Arena</div><div class="warn">Respaldo visual · falta la imagen original en assets/maluma-visa.jpg</div></div>`;
 }
 
 function watch(){
