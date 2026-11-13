@@ -254,11 +254,11 @@ function pickAds(){
   return shuffle([fixed, ...others]); // Maluma en posición aleatoria
 }
 function pickQuestions(ads){
-  // 6 retos: uno por anuncio + uno extra en un anuncio al azar (dificultad distinta)
+  // 6 retos: uno por anuncio + uno extra siempre de Maluma (dificultad distinta) → 2 retos de Maluma por partida
   for (let t=0;t<500;t++){
     const s = shuffle(PLAN), out = [], used = new Set(); let ok = true;
     const pairs = ads.map((ad,i) => [ad, s[i]]);
-    const extra = ads[Math.random()*5|0]; if (pairs.find(p => p[0]===extra)[1]===s[5]) continue;
+    const extra = ads.find(a => a.obligatorio); if (pairs.find(p => p[0]===extra)[1]===s[5]) continue;
     pairs.push([extra, s[5]]);
     pairs.forEach(([ad,d]) => {
       const q = shuffle(ad.preguntas.filter(p => p.d===d && !used.has(p)))[0];
@@ -364,25 +364,40 @@ async function phaseCard(icon, eyebrow, title, text, ms=2200){
 }
 
 /* ============ 9. MEMORIA ESPONTÁNEA ============ */
-function openQuestion({n, text, hint, sec, max, placeholder}){
+function openQuestion({n, text, hint, sec, max, placeholder, multi}){
   return new Promise(resolve => {
     header(n, 'S', max); $('#q-text').textContent = text; $('#q-hint').textContent = hint;
-    const body = $('#q-body');
-    body.innerHTML = `<div class="open-wrap"><input id="open-in" placeholder="${placeholder}" autocomplete="off" autocapitalize="words" enterkeyhint="send"><button class="btn primary" id="open-go"><span>LISTO</span></button></div><div class="chips" id="chips"><small>Escribe y separa con comas</small></div>`;
+    const body = $('#q-body'), items = [];
+    body.innerHTML = multi
+      ? `<div class="open-wrap"><input id="open-in" placeholder="${placeholder}" autocomplete="off" autocapitalize="words" enterkeyhint="enter"><button class="btn add" id="open-add" type="button"><span>＋ AGREGAR</span></button></div>
+         <div class="chips" id="chips"></div><button class="btn primary" id="open-go" type="button"><span>LISTO</span></button>`
+      : `<div class="open-wrap"><input id="open-in" placeholder="${placeholder}" autocomplete="off" autocapitalize="words" enterkeyhint="send"><button class="btn primary" id="open-go" type="button"><span>LISTO</span></button></div>`;
     show('s-q');
     const inp = $('#open-in'), chips = $('#chips'); setTimeout(() => inp.focus(), 450);
-    const list = () => inp.value.split(',').map(s => s.trim()).filter(Boolean);
-    if (n===1) inp.addEventListener('input', () => {
-      const l = list().slice(0,5);
-      chips.innerHTML = l.length ? l.map(x => `<span>${esc(x)}</span>`).join('') + `<small>${l.length}/5</small>` : '<small>Escribe y separa con comas</small>';
-    });
+    const draw = () => {
+      chips.innerHTML = items.map((x,i) => `<span class="${i===draw.fresh?'new':''}">${esc(x)}<button type="button" class="chip-x" data-i="${i}" aria-label="Quitar">✕</button></span>`).join('')
+        + `<small>${items.length ? items.length+'/5 marcas' : 'Escribe una marca y pulsa Agregar'}</small>`;
+      const full = items.length >= 5; inp.disabled = full; $('#open-add').disabled = full;
+      inp.placeholder = full ? 'Máximo 5 marcas' : placeholder;
+    };
+    const add = () => { const v = inp.value.trim(); if (!v || items.length >= 5) { inp.focus(); return; }
+      draw.fresh = -1; if (!items.some(x => norm(x) === norm(v))) { items.push(v); draw.fresh = items.length-1; }
+      inp.value = ''; draw(); if (items.length < 5) inp.focus();
+      const r = $('#open-add').getBoundingClientRect(); burst(r.left+r.width/2, r.top+r.height/2, 14); };
+    if (multi) {
+      draw(); $('#open-add').onclick = add;
+      chips.addEventListener('click', e => { const x = e.target.closest('.chip-x'); if (!x || finish.done) return; items.splice(+x.dataset.i, 1); draw.fresh = -1; draw(); });
+    }
     let finish;
     const stop = timer(sec, () => finish(sec));
-    finish = async t => { if (finish.done) return; finish.done = true; const used = stop(); inp.blur(); inp.disabled = true;
+    finish = async t => { if (finish.done) return; finish.done = true; const used = stop();
+      if (multi && inp.value.trim() && items.length < 5) items.push(inp.value.trim()); // lo escrito sin agregar también cuenta
+      inp.blur(); inp.disabled = true; body.querySelectorAll('button').forEach(b => b.disabled = true);
       const r = $('#open-go').getBoundingClientRect(); burst(r.left+r.width/2, r.top+r.height/2, 30);
-      await locked(); resolve({raw: inp.value, list: list(), time: t===sec ? sec : used}); };
+      const list = multi ? items.slice(0,5) : (inp.value.trim() ? [inp.value.trim()] : []);
+      await locked(); resolve({raw: multi ? items.join(', ') : inp.value, list, time: t===sec ? sec : used}); };
     $('#open-go').onclick = () => finish();
-    inp.addEventListener('keydown', e => { if (e.key==='Enter') finish(); });
+    inp.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); multi ? add() : finish(); } });
   });
 }
 
@@ -390,7 +405,7 @@ async function phase1(){
   await phaseCard('🧠','Fase 1 · Memoria espontánea','¡Tiempo de recordar!','Los anuncios desaparecieron. Escribe lo que recuerdes sin ayudas.');
   const present = new Set(G.ads.flatMap(a => [...a.marcas, ...a.marcasSecundarias]));
   // Pregunta 1 — marcas recordadas (máx 5 entradas, 100 c/u, tope 300)
-  const r1 = await openQuestion({n:1, text:'¿Qué marcas recuerdas haber visto en los anuncios?', hint:'Hasta 5 marcas separadas por comas · 100 pts por marca correcta (máx. 300)', sec:25, max:300, placeholder:'Marca 1, Marca 2, …'});
+  const r1 = await openQuestion({n:1, text:'¿Qué marcas recuerdas haber visto en los anuncios?', hint:'Agrega hasta 5 marcas, una por una · 100 pts por marca correcta (máx. 300)', sec:25, max:300, placeholder:'Escribe una marca', multi:true});
   const seen = new Set(), hits = [], misses = [];
   r1.list.slice(0,5).forEach(x => { const b = matchBrand(x); const key = b || norm(x); if (!key || seen.has(key)) return; seen.add(key);
     (b && present.has(b) ? hits : misses).push(b || x); });
